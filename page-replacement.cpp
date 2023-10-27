@@ -116,3 +116,119 @@ int main() {
     P.runLRU();
     return 0;
 }
+
+
+
+
+
+#include <iostream>
+#include <queue>
+#include <unordered_set>
+
+using namespace std;
+
+void FIFOPageReplacement(int pages[], int n, int capacity) {
+    queue<int> pageQueue;
+    unordered_set<int> pageSet;
+
+    int pageFaults = 0;
+    for (int i = 0; i < n; ++i) {
+        if (pageSet.size() < capacity) {
+            if (pageSet.find(pages[i]) == pageSet.end()) {
+                pageSet.insert(pages[i]);
+                pageQueue.push(pages[i]);
+                ++pageFaults;
+            }
+        } else {
+            if (pageSet.find(pages[i]) == pageSet.end()) {
+                int oldest = pageQueue.front();
+                pageQueue.pop();
+                pageSet.erase(oldest);
+
+                pageSet.insert(pages[i]);
+                pageQueue.push(pages[i]);
+                ++pageFaults;
+            }
+        }
+    }
+
+    cout << "Number of Page Faults (FIFO): " << pageFaults << endl;
+}
+
+int main() {
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2};
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int capacity = 3;
+
+    FIFOPageReplacement(pages, n, capacity);
+
+    return 0;
+}
+
+
+
+
+
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <climits>
+
+using namespace std;
+
+void optimalPageReplacement(int pages[], int n, int capacity) {
+    unordered_map<int, int> nextOccurrence;
+    vector<int> memory;
+    int pageFaults = 0;
+
+    for (int i = 0; i < n; ++i) {
+        if (memory.size() < capacity) {
+            memory.push_back(pages[i]);
+            nextOccurrence[pages[i]] = INT_MAX;
+            ++pageFaults;
+        } else {
+            bool found = false;
+            for (int j = 0; j < memory.size(); ++j) {
+                if (memory[j] == pages[i]) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                int farthest = -1, replaceIndex;
+                for (int j = 0; j < memory.size(); ++j) {
+                    if (nextOccurrence[memory[j]] > farthest) {
+                        farthest = nextOccurrence[memory[j]];
+                        replaceIndex = j;
+                    }
+                }
+
+                memory[replaceIndex] = pages[i];
+                nextOccurrence[pages[i]] = INT_MAX;
+                ++pageFaults;
+            }
+        }
+
+        // Update the next occurrence of the current page
+        for (int j = i + 1; j < n; ++j) {
+            if (pages[j] == pages[i]) {
+                nextOccurrence[pages[i]] = j;
+                break;
+            }
+        }
+    }
+
+    cout << "Number of Page Faults (Optimal): " << pageFaults << endl;
+}
+
+int main() {
+    int pages[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2};
+    int n = sizeof(pages) / sizeof(pages[0]);
+    int capacity = 3;
+
+    optimalPageReplacement(pages, n, capacity);
+
+    return 0;
+}
+
